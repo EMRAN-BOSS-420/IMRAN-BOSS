@@ -1,132 +1,128 @@
 const axios = require("axios");
-const fs = require("fs-extra");
-const path = require("path");
+
+let songIndex = 0;
 
 module.exports = {
   config: {
-    name: "fahim_voice",
-    version: "1.0.5",
-    author: "MR_FARHAN",
-    countDown: 1,
+    name: "adminmention",
+    version: "20.0.0",
+    author: "Farhan-Khan",
+    countDown: 0,
     role: 0,
-    shortDescription: "Ultra Fast Voice Reply",
-    longDescription: "Sends specific voice messages instantly using local cache",
+    shortDescription: "Fast caption + song reply",
     category: "system"
-  },
-
-  // ==============================
-  // 🔒 AUTHOR LOCK SYSTEM
-  // ==============================
-  _authorLock: function () {
-    const expectedAuthor = "MR_FARHAN";
-
-    if (module.exports.config.author !== expectedAuthor) {
-      throw new Error("🚫 AUTHOR LOCKED: You are not allowed to change author name!");
-    }
   },
 
   onStart: async function () {},
 
   onChat: async function ({ event, message }) {
 
-    // 🔒 Run lock check every time
-    this._authorLock();
+    // 🔒 Author Lock
+    if (this.config.author !== "Farhan-Khan") return;
 
-    if (!event.body) return;
-
-    const input = event.body.toLowerCase().trim();
-
-    const voiceMap = {
-
-      "magi": "https://files.catbox.moe/9co1zx.mp4",
-      "মাগি": "https://files.catbox.moe/63hyw2.mp4",
-
-      "খানকি": "https://files.catbox.moe/qhtvsf.mp4",
-      "khanki": "https://files.catbox.moe/kje55j.mp4",
-
-      "fahim": "https://files.catbox.moe/e2nd1c.mp3",
-      "ফাহিম": "https://files.catbox.moe/91qnco.mp4",
-
-      "@fahim ahmed": "https://files.catbox.moe/84fp4p.mp3",
-
-      "mahi": "https://files.catbox.moe/3u6shs.mp3",
-
-      "good night": "https://files.catbox.moe/i29m4q.mp3",
-      "গুড নাইট": "https://files.catbox.moe/i29m4q.mp3",
-
-      "good morning": "https://files.catbox.moe/8gzqx5.mp3",
-
-      "valobasi": "https://files.catbox.moe/s4ksgt.mp3",
-
-      "jan": "https://files.catbox.moe/rbbukc.mp3",
-      "biye": "https://files.catbox.moe/lssnaq.mp3",
-      "love": "https://files.catbox.moe/dwwa0b.mp3",
-      "oh": "https://files.catbox.moe/oqdhpi.mp3",
-      "wifi": "https://files.catbox.moe/kgl4qy.mp3",
-
-      "maye": "https://files.catbox.moe/q62hco.mp3",
-      "maiya": "https://files.catbox.moe/941wy3.mp3",
-
-      "mon": "https://files.catbox.moe/y951y2.mp3",
-      "sundor": "https://files.catbox.moe/j8aly8.mp3",
-
-      "replly": "https://files.catbox.moe/knbcsa.mp3",
-      "mama": "https://files.catbox.moe/6r9a0q.mp3",
-      "jamai": "https://files.catbox.moe/tksdsh.mp3",
-      "hasi": "https://files.catbox.moe/ng48w0.mp3",
-      "sundori": "https://files.catbox.moe/xpsbrv.mp3",
-      "online": "https://files.catbox.moe/yclzbp.mp3",
-      "eid": "https://files.catbox.moe/jtselt.mp3",
-      "boss": "https://files.catbox.moe/k6zvre.mp3",
-      "bou": "https://files.catbox.moe/n00sm0.mp3",
-      "free": "https://files.catbox.moe/vobj4c.mp3",
-      "valo": "https://files.catbox.moe/nv8t0p.mp3",
-      "asbo": "https://files.catbox.moe/znipjw.mp3",
-      "jai": "https://files.catbox.moe/d0lcxj.mp3",
-      "inbox": "https://files.catbox.moe/cf01jp.mp3",
-      "text": "https://files.catbox.moe/q7fu6p.mp3"
-
-    };
-
-    if (voiceMap[input]) {
-
-      const audioUrl = voiceMap[input];
-
-      const cacheDir = path.join(__dirname, "cache", "voices");
-
-      fs.ensureDirSync(cacheDir);
-
-      const ext = path.extname(audioUrl);
-
-      const fileName = `${Buffer.from(input).toString("hex")}${ext}`;
-
-      const filePath = path.join(cacheDir, fileName);
-
-      try {
-
-        // Send from cache
-        if (fs.existsSync(filePath)) {
-          return await message.reply({
-            attachment: fs.createReadStream(filePath)
-          });
-        }
-
-        // Download file
-        const response = await axios.get(audioUrl, {
-          responseType: "arraybuffer"
-        });
-
-        // Save cache
-        fs.writeFileSync(filePath, Buffer.from(response.data));
-
-        // Send file
-        await message.reply({
-          attachment: fs.createReadStream(filePath)
-        });
-
-      } catch (error) {
-        console.error("Error sending voice:", error);
+    const admins = [
+      {
+        uid: "61590253059850",
+        names: ["M'ʀ", "ইমরান", "imran", "Imran"]
+      },
+      {
+        uid: "61590253059850",
+        names: ["Admin"]
       }
+    ];
+
+    const senderID = String(event.senderID);
+
+    // ❌ Ignore Admin Self Mention
+    if (admins.some(a => a.uid === senderID)) return;
+
+    const text = (event.body || "").toLowerCase();
+
+    const mentionedIDs = event.mentions
+      ? Object.keys(event.mentions)
+      : [];
+
+    // ✅ Detect Mention
+    const isMentioning = admins.some(admin =>
+      mentionedIDs.includes(admin.uid) ||
+      admin.names.some(name =>
+        text.includes(name.toLowerCase())
+      )
+    );
+
+    if (!isMentioning) return;
+
+    // 🎵 Songs (UPDATED)
+    const songs = [
+      "https://files.catbox.moe/5tsqbp.mp3",
+      "https://files.catbox.moe/qvnajs.mp3",
+      "https://files.catbox.moe/u24cyh.mp3",
+      "https://files.catbox.moe/f2smiw.mp3",
+      "https://files.catbox.moe/igayc8.mp3",
+      "https://files.catbox.moe/hg2hoh.mp3",
+      "https://files.catbox.moe/2apha3.mp3",
+      "https://files.catbox.moe/3zilhc.mp3",
+      "https://files.catbox.moe/njuqwm.mp3",
+      "https://files.catbox.moe/3361cx.mp3",
+      "https://files.catbox.moe/670bk7.mp3",
+      "https://files.catbox.moe/e42fqi.mp3",
+      "https://files.catbox.moe/5dgyw8.mp3",
+      "https://files.catbox.moe/ebpv2c.mp3",
+      "https://files.catbox.moe/scd8w4.mp3",
+      "https://files.catbox.moe/q5bg7t.mp3",
+      "https://files.catbox.moe/s81cc8.mp3",
+      "https://files.catbox.moe/tx0o8l.mp3",
+      "https://files.catbox.moe/9m7lj2.mp3",
+      "https://files.catbox.moe/azr6x7.mp3",
+      "https://files.catbox.moe/x0p3tr.mp3",
+      "https://files.catbox.moe/7vjdfy.mp3",
+      "https://files.catbox.moe/36sd5r.mp3",
+      "https://files.catbox.moe/m076qd.mp3"
+    ];
+
+    const songUrl = songs[songIndex];
+    songIndex = (songIndex + 1) % songs.length;
+
+    // ✍️ Funny Captions
+    const captions = [
+      "Mantion_দিস না ইমরান বস এর মন ভালো নেই আস্কে-!💔🥀",
+      "👉আমার বস ইমরান এখন বিজি আছে 😎 ইনবক্সে মেসেজ দিয়ে রাখো 🐒",
+      "বস ইমরান এখন বিজি 😼 যা বলার আমাকে বলতে পারেন 🥰",
+      "বস ইমরান এখন sleeping mode এ আছে 😴",
+      "ইমরান বস এখন প্রেম করতে বিজি 💋🤧",
+      "এত mention না দিয়া inbox এ আসো 😏 premium reply দিবো 😹",
+      "বস ইমরান এখন hot mood এ আছে 🥵 সাবধানে কথা বলো 😹"
+    ];
+
+    const caption = `
+✿•━━━❖❖❖━━━✿
+${captions[Math.floor(Math.random() * captions.length)]}
+✿•━━━❖❖❖━━━✿
+`;
+
+    try {
+
+      const songStream = await axios({
+        url: songUrl,
+        method: "GET",
+        responseType: "stream",
+        timeout: 10000,
+        headers: {
+          "User-Agent": "Mozilla/5.0"
+        }
+      });
+
+      await message.reply({
+        body: caption,
+        attachment: [songStream.data]
+      });
+
+    } catch (err) {
+      console.log("❌ Song Error:", err.message);
+
+      await message.reply({
+        body: "😢 Voice দিতে পারলাম না"
+      });
     }
   }
 };
