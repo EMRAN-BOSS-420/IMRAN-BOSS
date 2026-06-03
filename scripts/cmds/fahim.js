@@ -9,7 +9,7 @@ module.exports = {
     author: "Farhan-Khan",
     countDown: 0,
     role: 0,
-    shortDescription: "Fahim video reply",
+    shortDescription: "Imran video reply",
     category: "media"
   },
 
@@ -131,7 +131,7 @@ module.exports = {
       });
 
       await message.reply({
-        body: "🎬 Fahim Video",
+        body: "🎬 Imran Video",
         attachment: videoStream.data
       });
 
